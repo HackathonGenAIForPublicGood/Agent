@@ -31,6 +31,8 @@ class AnalyseArrete(BaseModel):
     conformite_aux_exigences_legales: ConformiteLegale = Field(description="Analyse détaillée de la conformité")
     Observation: str = Field(description="Résumé des observations détaillées")
     niveau_de_confiance: str = Field(description="Note en pourcentage")
+    collectivité:str = Field(description="Nom de la collectivité qui a emis le texte")
+    signataire:str = Field(description="Nom et prénom du signataire ")
 
     class Config:
         use_enum_values = True  # Utiliser les valeurs des énumérations lors de la sérialisation
@@ -57,6 +59,8 @@ def analyser_arrete(contexte: str, contenu: str) -> str:
     Fournis une analyse détaillée et précise du document en évaluant sa conformité aux exigences légales.
     
     Le type de document doit être l'une des valeurs suivantes : arrêté, décision, délibération, convention, autre.
+
+    précise les personnes physique et les villes impliqué
     
     Contexte:
     {contexte}
