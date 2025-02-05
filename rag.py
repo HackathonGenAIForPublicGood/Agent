@@ -10,18 +10,11 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Charger les variables d'environnement
 load_dotenv()
+from llm import get_llm
 
 class RAGAgent:
-    def __init__(self):
-        self.api_key = os.getenv("API_KEY")
-        self.base_url = os.getenv("BASE_URL")
-        self.model_name = os.getenv("MODEL_NAME")
-        self.embedding_model = os.getenv("EMBEDDING_MODEL")
-        if not self.api_key or not self.base_url:
-            raise ValueError("API_KEY ou BASE_URL non trouvé dans le fichier .env")
-            
-        self.llm = ChatOpenAI(temperature=0, openai_api_key=self.api_key, base_url=self.base_url, model_name=self.model_name)
-
+    def __init__(self, model_name: str = "AgentPublic/llama3-instruct-8b"):
+        self.llm = get_llm(model_name=model_name)
 
         self.vector_store = None
 
