@@ -13,7 +13,7 @@ load_dotenv()
 from llm import get_llm
 
 class RAGAgent:
-    def __init__(self, model_name: str = "AgentPublic/llama3-instruct-8b"):
+    def __init__(self, model_name: str = "neuralmagic/Meta-Llama-3.1-70B-Instruct-FP8"):
         self.llm = get_llm(model_name=model_name)
 
         embedding = self.get_embedding_model()
@@ -101,7 +101,7 @@ class RAGAgent:
         print(f"Nombre de documents : {len(collection['ids'])}")
 
 
-    def extract_keywords_with_llm(self, text, num_keywords=5):
+    def extract_keywords_with_llm(self, text, num_keywords=3):
         """
         Extrait les mots-clés d'un texte en utilisant le LLM
         Args:
@@ -110,19 +110,20 @@ class RAGAgent:
         Returns:
             list: Liste des mots-clés extraits
         """
-        prompt = f"""En tant qu'expert en droit administratif et constitutionnel, identifie les {num_keywords} éléments juridiques les plus significatifs dans ce texte.
+        prompt = f"""En tant qu'expert en droit administratif et constitutionnel, identifie les {num_keywords} concepts juridiques principaux dans ce texte.
 
-        Concentre-toi spécifiquement sur :
-        - Les références au Code Général des Collectivités Territoriales (CGCT)
-        - Les visas et considérants juridiques
-        - Les références aux lois et décrets applicables
-        - Les mentions obligatoires (date, signature, tampon)
-        - Les autorités compétentes et leur pouvoir juridique
-        - La hiérarchie des normes juridiques
-        
-        Réponds uniquement avec une liste de termes séparés par des virgules, sans phrases explicatives.
-        
-        Texte à analyser : {text}"""
+        Concentre-toi sur :
+         - La nature générale de la mesure administrative
+         - Le type d'acte juridique
+        - Les personnes ou entités concernées
+        - La portée territoriale de la mesure
+        - L'objectif principal de la mesure
+
+        Réponds uniquement avec une liste de concepts généraux séparés par des virgules, sans phrases explicatives.
+         Par exemple, pour le texte suivant :
+        "ARTICLE 1 : Tout mineur 4gé de moins de 13 ans ne pourra, sans étre accompagné d’une personne majeure, \ncirculer de 23h a 6h sur la voie publique, dans les périmétres Quartiers Prioritaires de la ville figurants sur le \nplan annexé. \nARTICLE 2 : Cette interdiction s’applique toutes les nuits du lundi au dimanche inclus pour la période du 22 \navril au 30 septembre. \nARTICLE 3 : En cas d’urgence ou de danger immédiat pour lui ou pour autrui et sans préjudice des sanctions \npénales prévues a I’article R610-5 du code pénal, tout mineur de 13 ans en infraction avec les dispositions \nsusvisées pourra étre reconduit & son domicile ou au commissariat par les agents de la police nationale ou de \nla police municipale. \nEn application de I’article 40 du code de procédure pénale et de I’article 375 du code civil, les autorités \nsusmentionnées informeront sans délai le Procureur de la République de tous les faits susceptibles de donner \nlieu a ’engagement de poursuites ou a la saisine du Juge des Enfants. \nARTICLE 4 : En cas de manquements aux obligations édictées par le présent arrété, les parents des enfants \nconcernés pourront faire I’objet de poursuites pénales sur le fondement de ’article R610-5 et de ’article L227- \n17 du Code Pénal. \nARTICLE 5 : Madame la Directrice Générale des Services de la Mairie de Béziers, Monsieur le Commissaire \nCentral de Police et Monsieur le Directeur de la Direction de la Police Municipale de la Mairie sont chargés, \nchacun en ce qui le concerne, de I'exécution du présent arrété. \nFait en I'Hétel de Ville de Béziers, 22 AVR 2024"
+        Le concept principal serait : "couvre-feu pour les mineurs dans une ville de france métropolitaine"
+        Texte à analyser :  {text}"""
 
         response = self.llm.invoke(prompt)
         keywords = [kw.strip() for kw in response.content.split(',')]
@@ -152,7 +153,7 @@ class RAGAgent:
         """
         # Extraction des mots-clés du document
         keywords = self.analyze_document_keywords(file_path)
-        
+        print("keywords : ", keywords)
         # Recherche des passages pertinents pour chaque mot-clé
         relevant_passages = []
         for keyword in keywords:
@@ -161,6 +162,8 @@ class RAGAgent:
                 k=2
             )
             relevant_passages.extend([doc[0].page_content for doc in results])
+
+        #print("relevant_passages : ", relevant_passages)
         # Préparation du prompt pour l'analyse
         analysis_prompt = f"""En tant qu'expert en droit administratif et constitutionnel, analyse la validité juridique de ce document selon les critères suivants :
 
@@ -173,7 +176,7 @@ class RAGAgent:
 
         Sur la base de ces éléments :
         1. Évalue l'indice de confiance de ce document (0-100%, où 100% indique une confiance totale dans l'authenticité du document)
-        2. Justifie ton évaluation en quelques points clés
+        2. Justifie ton évaluation par une analyse approfondie des éléments juridiques identifiés et des références similaires dans la base de données.
 
         Réponds au format suivant :
         Indice de confiance: [pourcentage]
@@ -188,11 +191,18 @@ if __name__ == "__main__":
     rag = RAGAgent()
     
     # Charger et préparer les documents
-    documents = rag.load_documents("legitext.pdf")
+    #documents = rag.load_documents("arrete_beziers.pdf")
+    #print(documents)
+    document = rag.load_documents("docs/code_civil.pdf")
+    document1 = rag.load_documents("docs/code_pénal.pdf")
+    document2 = rag.load_documents("docs/code_territorial.pdf")
     
-
+    # Créer la base vectorielle
+    rag.create_vector_store(document)
+    rag.create_vector_store(document1)
+    rag.create_vector_store(document2)
     # Analyser le risque de fraude
-    fraud_analysis = rag.analyze_fraud_risk("arrete_beziers_test.pdf")
-    print("\nAnalyse de l'indice de confiance:")
-    print(fraud_analysis)
+    #fraud_analysis = rag.analyze_fraud_risk("arrete_beziers.pdf")
+    #print("\nAnalyse de l'indice de confiance:")
+    #print(fraud_analysis)
     
