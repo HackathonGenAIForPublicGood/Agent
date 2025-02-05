@@ -209,18 +209,21 @@ class ActesCategorizer:
                 for main, subs in self.categories.items()}
 
 
-def categorize_llm(text_to_categorize: str):
+def categorize_llm(text_to_categorize: str, DEBUG : bool = True):
     categorizer = ActesCategorizer()
     result = categorizer.categorize(text_to_categorize)
 
     # Tri des résultats par confiance décroissante
     sorted_results = sorted(result.subcategories, key=lambda x: x.confidence, reverse=True)
-    
-    for sub_result in sorted_results:
-        print(f"\nSous-catégorie : {sub_result.sub_category.value} - {sub_result.sub_category.name}")
-        print(f"Catégorie principale : {sub_result.main_category.value} - {sub_result.main_category.name}")
-        print(f"Confiance : {sub_result.confidence}")
-        print(f"Explication : {sub_result.explanation}")
+
+    if DEBUG:
+        for sub_result in sorted_results:
+            print(f"\nSous-catégorie : {sub_result.sub_category.value} - {sub_result.sub_category.name}")
+            print(f"Catégorie principale : {sub_result.main_category.value} - {sub_result.main_category.name}")
+            print(f"Confiance : {sub_result.confidence}")
+            print(f"Explication : {sub_result.explanation}")
+
+    return sorted_results
 
 
 if __name__ == "__main__":
