@@ -1,15 +1,25 @@
+# LangChain et ses dépendances
+langchain
 langchain-openai
-langchain
-python-dotenv
-docx2txt
-pdfminer
-pdfminer.six
-langchain 
-requests 
-pydantic
-openai
-langchain
 langchain_community
+
+# Gestion des documents
 pypdf
+docx2txt
+pdfminer.six
+
+# Base de données vectorielle
 chromadb
 sentence-transformers
+
+# API et modèles
+openai
+pydantic
+
+# Interface utilisateur
+streamlit
+
+# Utilitaires
+python-dotenv
+requests
+
