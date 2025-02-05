@@ -2,7 +2,11 @@ import streamlit as st
 import os
 import json
 from PdfReader.pdfreader import extract_text_from_pdf
+from categorisation import display_results_catégorisation
 from forme import analyser_arrete, contexte, AnalyseArrete
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def main():
     # Configuration de la clé API depuis la variable d'environnement
@@ -73,6 +77,11 @@ def main():
                 except Exception as e:
                     st.error(f"Une erreur s'est produite lors de l'analyse : {str(e)}")
                     st.error(f"Résultat JSON : {resultat_json}")  # Pour le débogage
+
+                # Appel de la fonction de catégorisation avec le texte extrait
+                st.markdown("---")
+                st.subheader("Catégorisation d'Actes Administratifs")
+                display_results_catégorisation(texte)
 
 if __name__ == "__main__":
     main()
