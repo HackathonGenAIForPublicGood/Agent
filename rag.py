@@ -60,35 +60,13 @@ class RAGAgent:
         embedding = self.get_embedding_model()
         
         # Vérifie si la base existe déjà
-        if os.path.exists("./chroma_langchain_db"):
-            self.vector_store = Chroma(
-                embedding_function=embedding,
+        self.vector_store = Chroma(
+            embedding_function=embedding,
                 collection_name="rag_collection",
                 persist_directory="./chroma_langchain_db"
-            )
-            
-            # Vérifie les doublons pour chaque nouveau texte
-            for text in texts:
-                # Recherche de documents similaires
-                results = self.vector_store.similarity_search_with_relevance_scores(
-                    text.page_content,
-                    k=1
-                )
-                
-                # Si aucun document similaire n'est trouvé ou si la similarité est faible (< 0.95)
-                if not results or results[0][1] < 0.95:
-                    self.vector_store.add_documents([text])
-        else:
-            # Création initiale de la base
-            self.vector_store = Chroma.from_documents(
-                documents=texts,
-                embedding=embedding,
-                collection_name="rag_collection",
-                persist_directory="./chroma_langchain_db"
-            )
+        )
+        self.vector_store.add_documents(texts)
         
-        # Persiste les changements
-        self.vector_store.persist()
         
     def inspect_collection(self):
         """
@@ -185,24 +163,24 @@ class RAGAgent:
         
         response = self.llm.invoke(analysis_prompt)
         return response.content
+    
 
-if __name__ == "__main__":
-    # Créer une instance de RAGAgent
+def init():
     rag = RAGAgent()
-    
-    # Charger et préparer les documents
-    #documents = rag.load_documents("arrete_beziers.pdf")
-    #print(documents)
     document = rag.load_documents("docs/code_civil.pdf")
-    document1 = rag.load_documents("docs/code_pénal.pdf")
+    document1 = rag.load_documents("docs/code_penal.pdf")
     document2 = rag.load_documents("docs/code_territorial.pdf")
-    
-    # Créer la base vectorielle
     rag.create_vector_store(document)
     rag.create_vector_store(document1)
     rag.create_vector_store(document2)
-    # Analyser le risque de fraude
-    #fraud_analysis = rag.analyze_fraud_risk("arrete_beziers.pdf")
-    #print("\nAnalyse de l'indice de confiance:")
-    #print(fraud_analysis)
+
+
+def get_result(file_path):
+    rag = RAGAgent()
+    return rag.analyze_fraud_risk(file_path)
+
+if __name__ == "__main__":
     
+    init()
+    result = get_result("arrete_beziers.pdf")
+    print(result)
