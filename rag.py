@@ -16,7 +16,12 @@ class RAGAgent:
     def __init__(self, model_name: str = "AgentPublic/llama3-instruct-8b"):
         self.llm = get_llm(model_name=model_name)
 
-        self.vector_store = None
+        embedding = self.get_embedding_model()
+        self.vector_store = Chroma(
+                embedding_function=embedding,
+                collection_name="rag_collection",
+                persist_directory="./chroma_langchain_db"
+            )
 
     def get_embedding_model(self):
         # Get DB
@@ -105,19 +110,21 @@ class RAGAgent:
         Returns:
             list: Liste des mots-clés extraits
         """
-        prompt = f"""En tant qu'expert juridique et administratif, identifie les {num_keywords} termes ou expressions les plus pertinents d'un point de vue légal dans le texte suivant. 
-        Concentre-toi sur :
-        - Les références juridiques (articles de loi, codes)
-        - Les termes administratifs officiels
-        - Les dates et numéros d'arrêtés
-        - Les autorités et institutions mentionnées
+        prompt = f"""En tant qu'expert en droit administratif et constitutionnel, identifie les {num_keywords} éléments juridiques les plus significatifs dans ce texte.
+
+        Concentre-toi spécifiquement sur :
+        - Les références au Code Général des Collectivités Territoriales (CGCT)
+        - Les visas et considérants juridiques
+        - Les références aux lois et décrets applicables
+        - Les mentions obligatoires (date, signature, tampon)
+        - Les autorités compétentes et leur pouvoir juridique
+        - La hiérarchie des normes juridiques
         
         Réponds uniquement avec une liste de termes séparés par des virgules, sans phrases explicatives.
         
-        Texte à analyser : {text[:2000]}"""  # Limite à 2000 caractères pour éviter les dépassements de contexte
-        
+        Texte à analyser : {text}"""
+
         response = self.llm.invoke(prompt)
-        # Nettoie et transforme la réponse en liste
         keywords = [kw.strip() for kw in response.content.split(',')]
         return keywords
 
@@ -154,15 +161,14 @@ class RAGAgent:
                 k=2
             )
             relevant_passages.extend([doc[0].page_content for doc in results])
-        
         # Préparation du prompt pour l'analyse
-        analysis_prompt = f"""En tant qu'expert en analyse de documents administratifs, examine les éléments suivants :
+        analysis_prompt = f"""En tant qu'expert en droit administratif et constitutionnel, analyse la validité juridique de ce document selon les critères suivants :
 
-        1. Texte, arrêtés municipaux à analyser : {self.load_documents(file_path)}
+        Document à analyser : {self.load_documents(file_path)}
 
-        2. Mots-clés extraits du document : {', '.join(keywords)}
+        Éléments juridiques identifiés : {', '.join(keywords)}
         
-        3. Passages similaires trouvés dans la base de référence :
+        Références juridiques similaires dans la base de données :
         {' '.join(relevant_passages[:10])}
 
         Sur la base de ces éléments :
@@ -184,9 +190,6 @@ if __name__ == "__main__":
     # Charger et préparer les documents
     documents = rag.load_documents("legitext.pdf")
     
-    # Créer la base vectorielle
-    rag.create_vector_store(documents)
-    #rag.inspect_collection()
 
     # Analyser le risque de fraude
     fraud_analysis = rag.analyze_fraud_risk("arrete_beziers_test.pdf")
