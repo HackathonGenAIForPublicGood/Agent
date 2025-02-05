@@ -4,3 +4,7 @@ python-dotenv
 docx2txt
 pdfminer
 pdfminer.six
+langchain 
+requests 
+pydantic
+langchain-openai
