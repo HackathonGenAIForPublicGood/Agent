@@ -1,4 +1,6 @@
-openai
+langchain-openai
+langchain
+python-dotenv
 docx2txt
 pdfminer
 pdfminer.six
