@@ -8,7 +8,7 @@ BASE_URL = "https://albert.api.etalab.gouv.fr/v1"
 API_KEY = os.getenv("API_KEY")
 
 
-def get_llm(base_url: str = BASE_URL, api_key: str = API_KEY, model_name: str = "AgentPublic/llama3-instruct-8b") -> ChatOpenAI:
+def get_llm(base_url: str = BASE_URL, api_key: str = API_KEY, model_name: str = "neuralmagic/Meta-Llama-3.1-70B-Instruct-FP8") -> ChatOpenAI:
     """
     Crée et retourne une instance de ChatOpenAI configurée.
 

@@ -5,86 +5,6 @@ import os
 import json
 from enum import Enum
 
-class TypeDocument(str, Enum):  # Hériter de str pour la sérialisation JSON
-    ARRETE = "arrêté"
-    DECISION = "décision"
-    DELIBERATION = "délibération"
-    CONVENTION = "convention"
-    AUTRE = "autre"
-
-class ConformiteDetail(BaseModel):
-    etat: str = Field(description="État de conformité (conforme, non conforme ou implicite)")
-    explication: str = Field(description="Justification de l'état de conformité")
-
-class ConformiteLegale(BaseModel):
-    ecriture: ConformiteDetail
-    date: ConformiteDetail
-    signature: ConformiteDetail
-    visas: ConformiteDetail
-    considerants: ConformiteDetail
-    dispositif: ConformiteDetail
-    publication: ConformiteDetail
-    transmission: ConformiteDetail
-
-class AnalyseArrete(BaseModel):
-    type_de_document: TypeDocument = Field(description="Type du document administratif (ex : arrêté, décision, ...)")
-    conformite_aux_exigences_legales: ConformiteLegale = Field(description="Analyse détaillée de la conformité")
-    Observation: str = Field(description="Résumé des observations détaillées")
-    niveau_de_confiance: str = Field(description="Note en pourcentage")
-    collectivité:str = Field(description="Nom de la collectivité qui a emis le texte")
-    signataire:str = Field(description="Nom et prénom du signataire ")
-
-    class Config:
-        use_enum_values = True  # Utiliser les valeurs des énumérations lors de la sérialisation
-
-def analyser_arrete(contexte: str, contenu: str) -> str:
-    # Récupération de la clé API
-    api_key = os.getenv("API_KEY")
-    base_url = "https://albert.api.etalab.gouv.fr/v1"
-    
-    llm = ChatOpenAI(
-        base_url=base_url, 
-        api_key=api_key, 
-        model_name="neuralmagic/Meta-Llama-3.1-70B-Instruct-FP8"
-    )
-    
-    # Utilisation de with_structured_output pour obtenir une sortie structurée
-    structured_llm = llm.with_structured_output(
-        AnalyseArrete,
-        method="function_calling"
-    )
-
-    # Création du prompt
-    prompt = f"""Tu es un expert en droit administratif français. Analyse le document suivant selon le contexte fourni.
-    Fournis une analyse détaillée et précise du document en évaluant sa conformité aux exigences légales.
-    
-    Le type de document doit être l'une des valeurs suivantes : arrêté, décision, délibération, convention, autre.
-
-    précise les personnes physique et les villes impliqué
-    
-    Contexte:
-    {contexte}
-    
-    Document à analyser:
-    {contenu}
-    """
-
-    # Exécution de l'analyse
-    try:
-        resultat = structured_llm.invoke(prompt)
-        # Conversion explicite en JSON
-        if isinstance(resultat, str):
-            # Si le résultat est déjà une chaîne JSON
-            return resultat
-        elif hasattr(resultat, 'model_dump'):
-            # Si c'est un modèle Pydantic
-            return json.dumps(resultat.model_dump(), ensure_ascii=False, indent=2)
-        else:
-            # Pour tout autre type
-            return json.dumps(resultat, ensure_ascii=False, indent=2)
-    except Exception as e:
-        return json.dumps({"erreur": str(e)}, ensure_ascii=False, indent=2)
-
 contexte = """
 Prendre un arrêté
 Le maire prend des arrêtés dans le cadre de ses pouvoirs de police et dans le cadre des compétences qui lui ont été déléguées en début de mandat par le Conseil Municipal.
@@ -172,98 +92,98 @@ La Maire de Paris,
 Vu les articles L 2122-27, L 2122-30, L 2511-27 et R 2122-8 du Code général des collectivités
 territoriales ;
 Vu la délibération 2020 DDCT 17 du 3 juillet 2020, par laquelle le Conseil de Paris a donné à
-la Maire de Paris délégation de pouvoir en ce qui concerne les actes énumérés à l’article L.
-2122-22 du Code général des collectivités territoriales et l’a autorisée à déléguer sa signature
+la Maire de Paris délégation de pouvoir en ce qui concerne les actes énumérés à l'article L.
+2122-22 du Code général des collectivités territoriales et l'a autorisée à déléguer sa signature
 en ces matières aux responsables des services de la Ville de Paris ;
-Vu l’arrêté du 10 juillet 2020 affectant Monsieur David-Dominique FLEURIER à la Mairie du
+Vu l'arrêté du 10 juillet 2020 affectant Monsieur David-Dominique FLEURIER à la Mairie du
 secteur Paris-Centre, pour exercer les fonctions de directeur général adjoint des services de la
 Mairie du secteur Paris-Centre ;
-Vu l’arrêté du 1er juin 2021 détachant Monsieur Alban GIRAUD, dans l’emploi de directeur
+Vu l'arrêté du 1er juin 2021 détachant Monsieur Alban GIRAUD, dans l'emploi de directeur
 général adjoint des services de la Mairie du secteur Paris-Centre ;
-Vu l’arrêté du 28 septembre 2021 détachant Madame Isabelle VERDOU, dans l’emploi de
+Vu l'arrêté du 28 septembre 2021 détachant Madame Isabelle VERDOU, dans l'emploi de
 directrice générale adjointe des services de la Mairie du secteur Paris-Centre ;
-Vu l’arrêté du 26 juin 2023 détachant Monsieur Elie BEAUROY, dans l’emploi de directeur
+Vu l'arrêté du 26 juin 2023 détachant Monsieur Elie BEAUROY, dans l'emploi de directeur
 général des services de la Mairie du secteur Paris-Centre ;
 Sur proposition de Madame la Secrétaire Générale de la Ville de Paris,
 ARRÊTE :
 Article premier : La signature de la Maire de Paris est déléguée à Monsieur Elie BEAUROY,
-directeur général des services de la Mairie du secteur Paris-Centre. En cas d’absence ou
-d’empêchement de Monsieur Elie BEAUROY, la signature de la Maire de Paris est déléguée à
+directeur général des services de la Mairie du secteur Paris-Centre. En cas d'absence ou
+d'empêchement de Monsieur Elie BEAUROY, la signature de la Maire de Paris est déléguée à
 Monsieur David-Dominique FLEURIER, directeur général adjoint des services de la Mairie du
 secteur Paris-Centre, à Madame Isabelle VERDOU, directrice générale adjointe des services de
 la Mairie du secteur Paris-Centre et à Monsieur Alban GIRAUD, directeur général adjoint des
 services de la Mairie du secteur Paris-Centre, pour les actes énumérés ci-dessous :
 - procéder à la légalisation ou à la certification matérielle de signature des administrés ;
-- procéder aux certifications conformes à l’original des copies de documents ;
+- procéder aux certifications conformes à l'original des copies de documents ;
 - procéder à la délivrance des différents certificats prévus par les dispositions législatives ou
 réglementaires en vigueur ;
 2
-- recevoir les notifications, délivrer les récépissés et assurer l’information des présidents des
+- recevoir les notifications, délivrer les récépissés et assurer l'information des présidents des
 bureaux de vote dans les conditions définies par les articles R 46 et R 47, dernier alinéa, du Code
 électoral ;
-- préparer, organiser et exécuter, au titre des attributions légales fixées à l’article L 2122-27 du
+- préparer, organiser et exécuter, au titre des attributions légales fixées à l'article L 2122-27 du
 Code général des collectivités territoriales et dans les conditions prévues à cet effet par le Code
 électoral, les opérations, actes et décisions, individuels et collectifs, ainsi que les arrêts
 comptables relatifs à la tenue des listes électorales et au déroulement des opérations électorales,
-à l’exclusion des désignations prévues à l’article R 43 du Code électoral ;
+à l'exclusion des désignations prévues à l'article R 43 du Code électoral ;
 - coter et parapher, et le cas échéant, viser annuellement conformément aux dispositions légales
 et réglementaires les registres, livres et répertoires concernés ;
-- coter et parapher les feuillets du registre des délibérations du conseil d’arrondissement ;
+- coter et parapher les feuillets du registre des délibérations du conseil d'arrondissement ;
 - signer les autorisations de fermeture de cercueil et les autorisations de crémation en application
 des articles R 2213-17 et R 2213-34 du Code général des collectivités territoriales;
 - signer les autorisations pour le dépôt provisoire du cercueil sur le territoire parisien et hors
 cimetière parisien ;
-- signer toutes copies et extraits d’actes d’état-civil ;
+- signer toutes copies et extraits d'actes d'état-civil ;
 - signer les affirmations des procès-verbaux par des gardes particuliers assermentés ;
-- valider les attestations d’accueil conformément aux articles L 211-3 à L 211-10 et R 211-11 à
-R 211-26 du Code de l’entrée et du séjour des étrangers et du droit d’asile ;
-- émettre les avis demandés par l’Office Français de l’immigration et de l’intégration sur les
+- valider les attestations d'accueil conformément aux articles L 211-3 à L 211-10 et R 211-11 à
+R 211-26 du Code de l'entrée et du séjour des étrangers et du droit d'asile ;
+- émettre les avis demandés par l'Office Français de l'immigration et de l'intégration sur les
 demandes de regroupement familial des étrangers soumis à cette procédure, conformément aux
-articles R 421-9 à R 421-19 du Code de l’entrée et du séjour des étrangers et du droit d’asile ;
-- attester le service fait figurant sur les états liquidatifs d’heures supplémentaires effectuées par
+articles R 421-9 à R 421-19 du Code de l'entrée et du séjour des étrangers et du droit d'asile ;
+- attester le service fait figurant sur les états liquidatifs d'heures supplémentaires effectuées par
 les agents placés sous leur autorité ;
-- signer les décisions de recrutement, de prolongation et de fin d’engagement d’agents vacataires
-en qualité de suppléants de gardien de mairie d’arrondissement, de renfort pour les élections,
+- signer les décisions de recrutement, de prolongation et de fin d'engagement d'agents vacataires
+en qualité de suppléants de gardien de mairie d'arrondissement, de renfort pour les élections,
 le recensement général de la population et le budget participatif ;
-- signer les décisions d’engagement et leurs avenants, les cartes officielles, les décisions de
-licenciement et l’arrêté collectif de nomination des agents recenseurs ;
-- signer les décisions individuelles d’engagement des agents de bureaux de vote ou l’arrêté
+- signer les décisions d'engagement et leurs avenants, les cartes officielles, les décisions de
+licenciement et l'arrêté collectif de nomination des agents recenseurs ;
+- signer les décisions individuelles d'engagement des agents de bureaux de vote ou l'arrêté
 collectif de nomination des agents de bureau de vote ;
 - attester le service fait par les agents recenseurs et les agents de bureaux de vote ;
-- signer les décisions de recrutement d’agents saisonniers durant la période estivale ;
+- signer les décisions de recrutement d'agents saisonniers durant la période estivale ;
 - notifier les décisions portant non-renouvellement des contrats des agents non titulaires placés
-sous leur autorité, à l’exclusion des collaborateurs du Maire d’arrondissement ;
+sous leur autorité, à l'exclusion des collaborateurs du Maire d'arrondissement ;
 - signer les arrêtés de temps partiel, de congé maternité, de congé paternité, de congé parental,
-de congé d’adoption, d’attribution de prime d’installation concernant les personnels de
-catégories B et C placés sous leur autorité, à l’exception des directrices et directeurs généraux
-adjoints des services et des collaborateurs du Maire d’arrondissement ;
+de congé d'adoption, d'attribution de prime d'installation concernant les personnels de
+catégories B et C placés sous leur autorité, à l'exception des directrices et directeurs généraux
+adjoints des services et des collaborateurs du Maire d'arrondissement ;
 3
-- signer les arrêtés de congé initial à plein traitement de un à trente jours au titre d’un accident
+- signer les arrêtés de congé initial à plein traitement de un à trente jours au titre d'un accident
 de service, de trajet ou de travail non contesté ;
 - signer les arrêtés de sanctions du premier groupe pour les agents de catégories B et C ;
-- signer les fiches d’évaluation des personnels placés sous leur autorité ;
-- signer les conventions de stage (stagiaires extérieurs) d’une durée inférieure à deux mois
+- signer les fiches d'évaluation des personnels placés sous leur autorité ;
+- signer les conventions de stage (stagiaires extérieurs) d'une durée inférieure à deux mois
 (280 heures) ;
 - attester du service fait figurant sur les factures du marché annuel de fourniture de plateaux repas
-à l’occasion des scrutins électoraux ;
+à l'occasion des scrutins électoraux ;
 - signer tous les contrats ou conventions permettant la rémunération de tiers intervenant lors de
-manifestations ou d’activités d’animation et toutes pièces comptables et attestations de service
+manifestations ou d'activités d'animation et toutes pièces comptables et attestations de service
 fait correspondantes ;
-- signer les conventions d’occupation de locaux et les conventions de prêt de matériel.
+- signer les conventions d'occupation de locaux et les conventions de prêt de matériel.
 - signer tous les actes administratifs et tous les titres, états de recouvrement de créances de la
-Ville de Paris et factures, pris ou émis dans le cadre de l’exécution du budget municipal en
+Ville de Paris et factures, pris ou émis dans le cadre de l'exécution du budget municipal en
 recettes.
-Article 2 : L’arrêté du 27 janvier 2022, déléguant la signature de la Maire de Paris à Madame
+Article 2 : L'arrêté du 27 janvier 2022, déléguant la signature de la Maire de Paris à Madame
 Catherine ARRIAL, directrice générale des services de la Mairie du secteur Paris-Centre, à
 Monsieur David-Dominique FLEURIER, directeur général adjoint des services de la Mairie du
 secteur Paris-Centre, à Madame Isabelle VERDOU, directrice générale adjointe des services de
 la Mairie du secteur Paris-Centre et à Monsieur Alban GIRAUD, directeur général adjoint des
-services en charge de l’espace public de la Mairie du secteur Paris-Centre est abrogé.
+services en charge de l'espace public de la Mairie du secteur Paris-Centre est abrogé.
 Article 3 : Le présent arrêté sera publié sur le portail des publications administratives de la Ville
 de Paris.
 Article 4 : Ampliation du présent arrêté sera adressée :
-- à M. le Préfet de la région d’Ile-de-France, Préfet de Paris,
-- à Mme le Directrice régionale des Finances Publiques, d’Ile-de-France et
+- à M. le Préfet de la région d'Ile-de-France, Préfet de Paris,
+- à Mme le Directrice régionale des Finances Publiques, d'Ile-de-France et
 de Paris,
 - à Mme la Secrétaire Générale de la Ville de Paris,
 - à Mme la Directrice de la Démocratie, des Citoyen·ne·s et des
@@ -274,6 +194,89 @@ Fait à Paris, le 19 juillet 2023
 La Maire de Paris
 Anne HIDALGO
 """
+
+class TypeDocument(str, Enum):  # Hériter de str pour la sérialisation JSON
+    ARRETE = "arrêté"
+    DECISION = "décision"
+    DELIBERATION = "délibération"
+    CONVENTION = "convention"
+    AUTRE = "autre"
+
+class ConformiteDetail(BaseModel):
+    etat: str = Field(description="État de conformité en fonction du contexte (conforme, non conforme ou implicite)")
+    explication: str = Field(description="Justification de l'état de conformité avec des extraits du document")
+
+class ConformiteLegale(BaseModel):
+    ecriture: ConformiteDetail 
+    date: ConformiteDetail 
+    signature: ConformiteDetail
+    visas: ConformiteDetail 
+    considerants: ConformiteDetail 
+    dispositif: ConformiteDetail 
+    publication: ConformiteDetail
+    transmission: ConformiteDetail
+    completion: ConformiteDetail
+
+class AnalyseArrete(BaseModel):
+    type_de_document: TypeDocument = Field(description="Type du document administratif (ex : arrêté, décision, ...)")
+    conformite_aux_exigences_legales: ConformiteLegale = Field(description="Analyse détaillée de la conformité")
+    Observation: str = Field(description="Résumé des observations détaillées")
+    niveau_de_confiance: str = Field(description="Note en pourcentage")
+    collectivité:str = Field(description="Nom de la collectivité qui a emis le texte")
+    signataire:str = Field(description="Nom et prénom du signataire ")
+
+    class Config:
+        use_enum_values = True  # Utiliser les valeurs des énumérations lors de la sérialisation
+
+def analyser_arrete(contexte: str = contexte, contenu: str = contenu) -> str:
+    # Récupération de la clé API
+    api_key = os.getenv("API_KEY")
+    base_url = "https://albert.api.etalab.gouv.fr/v1"
+    
+    llm = ChatOpenAI(
+        base_url=base_url, 
+        api_key=api_key, 
+        model_name="neuralmagic/Meta-Llama-3.1-70B-Instruct-FP8"
+    )
+    
+    # Utilisation de with_structured_output pour obtenir une sortie structurée
+    structured_llm = llm.with_structured_output(
+        AnalyseArrete,
+        method="function_calling"
+    )
+
+    # Création du prompt
+    prompt = f"""Tu es un expert en droit administratif français. Analyse le document suivant selon le contexte fourni.
+    Fournis une analyse détaillée et précise du document en évaluant sa conformité aux exigences légales. verfie 
+    
+    Le type de document doit être l'une des valeurs suivantes : arrêté, décision, délibération, convention, autre.
+
+    précise les personnes physique et les villes impliqué
+    
+    Contexte:
+    {contexte}
+    
+    Document à analyser:
+    {contenu}
+    """
+
+    # Exécution de l'analyse
+    try:
+        resultat = structured_llm.invoke(prompt)
+        # Conversion explicite en JSON
+        if isinstance(resultat, str):
+            # Si le résultat est déjà une chaîne JSON
+            return resultat
+        elif hasattr(resultat, 'model_dump'):
+            # Si c'est un modèle Pydantic
+            return json.dumps(resultat.model_dump(), ensure_ascii=False, indent=2)
+        else:
+            # Pour tout autre type
+            return json.dumps(resultat, ensure_ascii=False, indent=2)
+    except Exception as e:
+        return json.dumps({"erreur": str(e)}, ensure_ascii=False, indent=2)
+
+
 
 # Exemple d'utilisation
 if __name__ == "__main__":

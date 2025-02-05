@@ -8,7 +8,7 @@ from llm import get_llm
 
 
 class ActesCategorizer:
-    def __init__(self, model_name: str = "AgentPublic/llama3-instruct-8b"):
+    def __init__(self, model_name: str = "neuralmagic/Meta-Llama-3.1-70B-Instruct-FP8"):
         self.llm = get_llm(model_name=model_name)
         self.categories = self._generate_category_hierarchy()
         self.structured_llm = self.llm.with_structured_output(CategoryResult)

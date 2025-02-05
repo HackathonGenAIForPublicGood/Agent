@@ -1,0 +1,3 @@
+mkdir frontendtest
+cd frontendtest
+npm create vue@latest 

@@ -23,3 +23,11 @@ streamlit
 python-dotenv
 requests
 
+# FastAPI et uvicorn
+fastapi>=0.68.0
+uvicorn>=0.15.0
+pydantic>=1.8.0
+
+# Multipart
+python-multipart
+
