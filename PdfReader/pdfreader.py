@@ -24,3 +24,4 @@ def extract_text_from_upload(file):
         return file.getvalue().decode("utf-8")
     else:
         return file.getvalue().decode("utf-8")
+    
