@@ -1,0 +1,93 @@
+from enum import Enum
+from pydantic import BaseModel, Field, validator
+from typing import List, Optional, Dict
+
+class MainCategory(str, Enum):
+    COMMANDE_PUBLIQUE = "1"
+    URBANISME = "2"
+    DOMAINE_ET_PATRIMOINE = "3"
+    FONCTION_PUBLIQUE = "4"
+    INSTITUTIONS_ET_VIE_POLITIQUE = "5"
+    LIBERTES_PUBLIQUES_ET_POUVOIRS_DE_POLICE = "6"
+    FINANCES_LOCALES = "7"
+    DOMAINES_DE_COMPETENCES_PAR_THEMES = "8"
+    AUTRES_DOMAINES_DE_COMPETENCES = "9"
+
+
+class SubCategory(str, Enum):
+    # 1. COMMANDE PUBLIQUE
+    MARCHES_PUBLICS = "1.1"
+    DELEGATIONS_SERVICE_PUBLIC = "1.2"
+    CONVENTIONS_MANDAT = "1.3"
+    AUTRES_CONTRATS = "1.4"
+    TRANSACTIONS = "1.5"
+    ACTES_MAITRISE_OEUVRE = "1.6"
+    ACTES_SPECIAUX_DIVERS = "1.7"
+    # 2. URBANISME
+    DOCUMENTS_URBANISME = "2.1"
+    ACTES_OCCUPATION_SOLS = "2.2"
+    DROIT_PREEMPTION_URBAIN = "2.3"
+    # 3. DOMAINE ET PATRIMOINE
+    ACQUISITIONS = "3.1"
+    ALIENATIONS = "3.2"
+    LOCATIONS = "3.3"
+    LIMITES_TERRITORIALES = "3.4"
+    ACTES_GESTION_DOMAINE_PUBLIC = "3.5"
+    ACTES_GESTION_DOMAINE_PRIVE = "3.6"
+    # 4. FONCTION PUBLIQUE
+    PERSONNEL_TITULAIRE_FPT = "4.1"
+    PERSONNEL_CONTRACTUEL = "4.2"
+    FONCTION_PUBLIQUE_HOSPITALIERE = "4.3"
+    AUTRES_CATEGORIES_PERSONNEL = "4.4"
+    REGIME_INDEMNITAIRE = "4.5"
+    # 5. INSTITUTIONS ET VIE POLITIQUE
+    ELECTION_EXECUTIF = "5.1"
+    FONCTIONNEMENT_ASSEMBLEES = "5.2"
+    DESIGNATION_REPRESENTANTS = "5.3"
+    DELEGATION_FONCTIONS = "5.4"
+    DELEGATION_SIGNATURE = "5.5"
+    EXERCICE_MANDATS_LOCAUX = "5.6"
+    INTERCOMMUNALITE = "5.7"
+    DECISION_ESTER_JUSTICE = "5.8"
+    # 6. LIBERTES PUBLIQUES ET POUVOIRS DE POLICE
+    POLICE_MUNICIPALE = "6.1"
+    POUVOIRS_PRESIDENT_CONSEIL_GENERAL = "6.2"
+    AUTRES_ACTES_REGLEMENTAIRES = "6.4"
+    ACTES_PRIS_NOM_ETAT = "6.5"
+    # 7. FINANCES LOCALES
+    DECISIONS_BUDGETAIRES = "7.1"
+    FISCALITE = "7.2"
+    EMPRUNTS = "7.3"
+    INTERVENTIONS_ECONOMIQUES = "7.4"
+    SUBVENTIONS = "7.5"
+    CONTRIBUTIONS_BUDGETAIRES = "7.6"
+    AVANCES = "7.7"
+    FONDS_CONCOURS = "7.8"
+    PRISE_PARTICIPATION = "7.9"
+    DIVERS_FINANCES = "7.10"
+    # 8. DOMAINES DE COMPETENCES PAR THEMES
+    ENSEIGNEMENT = "8.1"
+    AIDE_SOCIALE = "8.2"
+    POLITIQUE_VILLE_HABITAT_LOGEMENT = "8.5"
+    ENVIRONNEMENT = "8.8"
+    # 9. AUTRES DOMAINES DE COMPETENCES
+    AUTRES_DOMAINES_COMMUNES = "9.1"
+    AUTRES_DOMAINES_DEPARTEMENTS = "9.2"
+    VOEUX_ET_MOTIONS = "9.4"
+
+
+class SubCategoryResult(BaseModel):
+    sub_category: SubCategory
+    main_category: MainCategory
+    confidence: float = Field(ge=0, le=1)
+    explanation: str
+
+    @validator('confidence')
+    def check_confidence(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError('Confidence must be between 0 and 1')
+        return v
+
+
+class CategoryResult(BaseModel):
+    subcategories: List[SubCategoryResult] = Field(default_factory=list)
