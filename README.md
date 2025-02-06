@@ -1,6 +1,6 @@
 # Introduction
 
-Ce projet est un prototype qui vise à illustrer l'utilisation d'outils d'IA Générative pour permettre d'assister l'analyse de documents administratifs, en particulier les arrêtés municipaux
+Ce projet est un prototype qui vise à illustrer l'utilisation d'outils d'IA Générative pour permettre d'assister l'analyse de documents administratifs, en particulier les arrêtés municipaux.
 
 # Comment l'utiliser
 
