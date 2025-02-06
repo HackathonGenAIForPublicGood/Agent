@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-init()
+#init()
 
 # Ajouter ces classes pour la validation des données
 class TexteRequest(BaseModel):

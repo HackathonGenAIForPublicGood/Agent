@@ -62,11 +62,28 @@ class RAGAgent:
         # Vérifie si la base existe déjà
         self.vector_store = Chroma(
             embedding_function=embedding,
-                collection_name="rag_collection",
-                persist_directory="./chroma_langchain_db"
+            collection_name="rag_collection",
+            persist_directory="./chroma_langchain_db"
         )
-        self.vector_store.add_documents(texts)
         
+        # Traitement par lots de 1000 documents
+        batch_size = 1000
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            
+            # Vérifie les doublons pour chaque texte du lot
+            for text in batch:
+                # Recherche de documents similaires
+                similar_docs = self.vector_store.similarity_search_with_score(
+                    text.page_content,
+                    k=1
+                )
+                
+                # Si aucun document similaire n'est trouvé ou si la similarité est faible
+                if not similar_docs or similar_docs[0][1] > 0.1:
+                    self.vector_store.add_documents([text])
+            
+            print(f"Traitement du lot {i//batch_size + 1} terminé ({i+len(batch)}/{len(texts)} documents)")
         
     def inspect_collection(self):
         """
@@ -79,7 +96,7 @@ class RAGAgent:
         print(f"Nombre de documents : {len(collection['ids'])}")
 
 
-    def extract_keywords_with_llm(self, text, num_keywords=3):
+    def extract_keywords_with_llm(self, text, num_keywords=5):
         """
         Extrait les mots-clés d'un texte en utilisant le LLM
         Args:
@@ -150,7 +167,7 @@ class RAGAgent:
         Éléments juridiques identifiés : {', '.join(keywords)}
         
         Références juridiques similaires dans la base de données :
-        {' '.join(relevant_passages[:10])}
+        {' '.join(relevant_passages[:30])}
 
         Sur la base de ces éléments :
         1. Évalue l'indice de confiance de ce document (0-100%, où 100% indique une confiance totale dans l'authenticité du document)
@@ -187,25 +204,52 @@ class RAGAgent:
             relevant_passages.extend([doc[0].page_content for doc in results])
 
         # Préparation du prompt pour l'analyse
-        analysis_prompt = f"""En tant qu'expert en droit administratif et constitutionnel, analyse la validité juridique de ce document selon les critères suivants :
+        analysis_prompt = f"""En tant qu'expert en droit administratif et constitutionnel, ta mission est d'analyser la validité juridique d'un document administratif en te basant UNIQUEMENT sur les références juridiques de notre base de données.
 
         Document à analyser : {text}
 
-        Éléments juridiques identifiés : {', '.join(keywords)}
-        
-        Références juridiques similaires dans la base de données :
-        {' '.join(relevant_passages[:10])}
+        Références juridiques officielles disponibles :
+        {' '.join(relevant_passages[:30])}
 
-        Sur la base de ces éléments :
-        1. Évalue l'indice de confiance de ce document (0-100%, où 100% indique une confiance totale dans l'authenticité du document)
-        2. Justifie ton évaluation par une analyse approfondie des éléments juridiques identifiés et des références similaires dans la base de données.
-        3. Cite les éléments juridiques identifiés que tu juge interressant pour l'analyse du document
+        Concepts juridiques identifiés : {', '.join(keywords)}
 
-        Penses étapes par étapes
+        RÈGLES D'ANALYSE :
+        - Ignorer toute référence juridique mentionnée dans le document à analyser
+        - Se baser UNIQUEMENT sur les références juridiques fournies par la base de données
+        - Ne pas tenir compte des aspects formels ou de la structure du document
+        - Analyser uniquement la légalité et la cohérence du contenu
 
-        Réponds au format suivant :
-        Indice de confiance: [pourcentage]
-        Justification: [liste des points]
+        Procède à l'analyse selon les étapes suivantes :
+
+        1. ANALYSE DU CONTENU
+        - Compare les mesures prises avec celles présentes dans les références
+        - Vérifie si l'intensité des mesures est cohérente avec les précédents
+        - Examine si les pouvoirs exercés correspondent à ceux documentés dans les références
+
+        2. VÉRIFICATION DE LA COMPÉTENCE
+        - Compare avec les domaines d'intervention autorisés selon les références
+        - Vérifie si les mesures correspondent aux prérogatives documentées
+
+        3. ANALYSE DE LA PROPORTIONNALITÉ
+        - Évalue si l'intensité des mesures est comparable aux cas similaires
+        - Compare avec les solutions retenues dans des situations analogues
+
+        Format de réponse attendu :
+        Indice de confiance : [pourcentage]
+
+        Analyse du contenu :
+        - [observations basées uniquement sur la comparaison avec les références]
+
+        Éléments cohérents avec les références :
+        - [liste des points conformes aux précédents]
+
+        Éléments divergents des références :
+        - [liste des incohérences par rapport aux précédents]
+
+        Citations pertinentes des références :
+        - [extraits précis de la base de données justifiant l'analyse]
+
+        Conclusion finale : [synthèse de l'analyse]
         """
         
         response = self.llm.invoke(analysis_prompt)
@@ -216,10 +260,12 @@ def init():
     rag = RAGAgent()
     document = rag.load_documents("docs/code_civil.pdf")
     document1 = rag.load_documents("docs/code_penal.pdf")
-    #document2 = rag.load_documents("docs/code_territorial.pdf")
+    document2 = rag.load_documents("docs/code_territorial.pdf")
+    document3 = rag.load_documents("docs/code_de_securite_intérieure.pdf")
     rag.create_vector_store(document)
     rag.create_vector_store(document1)
-    #rag.create_vector_store(document2)
+    rag.create_vector_store(document2)
+    rag.create_vector_store(document3)
 
 
 def get_result(text):
