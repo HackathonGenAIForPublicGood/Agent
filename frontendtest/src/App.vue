@@ -1,131 +1,160 @@
 <template>
-  <div class="container">
-    <h1>Analyse d'Actes Administratifs</h1>
-    
+  <div class="container fr-container">
+    <div class="fr-grid-row">
+      <h1>3A - Analyseur d'Actes Administratifs</h1>
+
+      <div class="fr-callout fr-icon-information-line">
+        <h3 class="fr-callout__title">Bienvenue sur le 3A</h3>
+        <p class="fr-callout__text">
+          Le 3A est un outil d'analyse d'actes administratifs. Il permet d'extraire le texte d'un document PDF,
+          d'analyser
+          la forme du document, de le catégoriser en vue de son instruction par les Agents des préfectures, et de
+          confronter le contenu aux textes juridiques dans le but de proposer une première analyse de la validité de
+          l'acte.
+        </p>
+        <p class="fr-callout__text">
+          Son utilisation a été voulue pour être très simple :
+        <ul>
+          <li>
+            téléverser le document
+          </li>
+          <li>
+            consulter les résultats
+          </li>
+        </ul>
+        </p>
+      </div>
+    </div>
     <!-- Sélection du fichier -->
-    <div class="upload-section">
-      <input 
-        type="file" 
-        @change="handleFileUpload" 
-        accept=".pdf"
-        :disabled="isProcessing"
-      >
-      <div v-if="selectedFile" class="file-info">
-        Fichier sélectionné : {{ selectedFile.name }}
+    <div class="fr-grid-row">
+      <div class="fr-grid-col-12">
+        <h3>Téléverser le document</h3>
+        <div class="fr-upload-group">
+          <label class="fr-label" for="file-upload-multiple">Ajouter le fichier à analyser :
+            <span class="fr-hint-text">Taille maximale : 200 Mo. Formats supportés : pdf.</span>
+          </label>
+
+          <input type="file" @change="handleFileUpload" accept=".pdf" :disabled="isProcessing" class="fr-upload">
+          <div v-if="selectedFile" class="file-info">
+            Fichier sélectionné : {{ selectedFile.name }}
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Barres de progression -->
-    <div class="progress-section">
-      <div v-if="showTextProgress" class="task">
-        <span>Extraction du texte</span>
-        <div class="progress-bar">
-          <div :style="{ width: textExtractionProgress + '%' }" class="progress"></div>
-        </div>
-        <span>{{ textExtractionProgress }}%</span>
-      </div>
-
-      <div v-if="showAnalysisProgress" class="task">
-        <span>Analyse de forme</span>
-        <div class="progress-bar">
-          <div :style="{ width: analysisProgress + '%' }" class="progress"></div>
-        </div>
-        <span>{{ analysisProgress }}%</span>
-      </div>
-
-      <div v-if="showCategorizationProgress" class="task">
-        <span>Catégorisation</span>
-        <div class="progress-bar">
-          <div :style="{ width: categorizationProgress + '%' }" class="progress"></div>
-        </div>
-        <span>{{ categorizationProgress }}%</span>
-      </div>
-
-      <div v-if="showValidityProgress" class="task">
-        <span>Analyse de validité</span>
-        <div class="progress-bar">
-          <div :style="{ width: validityProgress + '%' }" class="progress"></div>
-        </div>
-        <span>{{ validityProgress }}%</span>
-      </div>
-    </div>
-
-    <!-- Résultats -->
-    <div v-if="results.text || results.analysis || results.categories" class="results-section">
-      <div v-if="results.text" class="result-box">
-        <h3>Texte extrait</h3>
-        <div class="text-content">{{ results.text }}</div>
-      </div>
-
-      <div v-if="results.analysis" class="result-box">
-        <h3>Analyse de forme</h3>
-        
-        <div class="analysis-header">
-          <div class="analysis-meta">
-            <p><strong>Type de document :</strong> {{ results.analysis.type_de_document }}</p>
-            <p><strong>Collectivité :</strong> {{ results.analysis.collectivite }}</p>
-            <p><strong>Signataire :</strong> {{ results.analysis.signataire }}</p>
-            <p><strong>Niveau de confiance :</strong> {{ results.analysis.niveau_de_confiance }}</p>
+    <div class="fr-grid-row">
+      <h3>Résultats de l'analyse</h3>
+      <div class="progress-section">
+        <div v-if="showTextProgress" class="task">
+          <span>Extraction du texte</span>
+          <div class="progress-bar">
+            <div :style="{ width: textExtractionProgress + '%' }" class="progress"></div>
           </div>
-          <div class="analysis-observation">
-            <p><strong>Observation générale :</strong></p>
-            <p>{{ results.analysis.Observation }}</p>
+          <span>{{ textExtractionProgress }}%</span>
+        </div>
+
+        <div v-if="showAnalysisProgress" class="task">
+          <span>Analyse de forme</span>
+          <div class="progress-bar">
+            <div :style="{ width: analysisProgress + '%' }" class="progress"></div>
+          </div>
+          <span>{{ analysisProgress }}%</span>
+        </div>
+
+        <div v-if="showCategorizationProgress" class="task">
+          <span>Catégorisation</span>
+          <div class="progress-bar">
+            <div :style="{ width: categorizationProgress + '%' }" class="progress"></div>
+          </div>
+          <span>{{ categorizationProgress }}%</span>
+        </div>
+
+        <div v-if="showValidityProgress" class="task">
+          <span>Analyse de validité</span>
+          <div class="progress-bar">
+            <div :style="{ width: validityProgress + '%' }" class="progress"></div>
+          </div>
+          <span>{{ validityProgress }}%</span>
+        </div>
+      </div>
+
+      <!-- Résultats -->
+      <div v-if="results.text || results.analysis || results.categories" class="results-section">
+        <div v-if="results.text" class="result-box">
+          <h3>Texte extrait</h3>
+          <div class="text-content">{{ results.text }}</div>
+        </div>
+
+        <div v-if="results.analysis" class="result-box">
+          <h3>Analyse de forme</h3>
+
+          <div class="analysis-header">
+            <div class="analysis-meta">
+              <p><strong>Type de document :</strong> {{ results.analysis.type_de_document }}</p>
+              <p><strong>Collectivité :</strong> {{ results.analysis.collectivite }}</p>
+              <p><strong>Signataire :</strong> {{ results.analysis.signataire }}</p>
+              <p><strong>Niveau de confiance :</strong> {{ results.analysis.niveau_de_confiance }}</p>
+            </div>
+            <div class="analysis-observation">
+              <p><strong>Observation générale :</strong></p>
+              <p>{{ results.analysis.Observation }}</p>
+            </div>
+          </div>
+
+          <div class="conformite-section">
+            <h4>Conformité aux exigences légales</h4>
+            <div class="conformite-grid">
+              <div v-for="(value, key) in results.analysis.conformite_aux_exigences_legales" :key="key"
+                class="conformite-item">
+                <div class="conformite-header">
+                  <span class="conformite-title">{{ formatTitle(key) }}</span>
+                  <span :class="['conformite-status', value.etat]">
+                    {{ value.etat }}
+                  </span>
+                </div>
+                <p class="conformite-explanation">{{ value.explication }}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="conformite-section">
-          <h4>Conformité aux exigences légales</h4>
-          <div class="conformite-grid">
-            <div v-for="(value, key) in results.analysis.conformite_aux_exigences_legales" 
-                 :key="key" 
-                 class="conformite-item">
-              <div class="conformite-header">
-                <span class="conformite-title">{{ formatTitle(key) }}</span>
-                <span :class="['conformite-status', value.etat]">
-                  {{ value.etat }}
+        <div v-if="results.categories" class="result-box">
+          <h3>Catégorisation</h3>
+          <div class="categories-grid">
+            <div v-for="(category, index) in results.categories" :key="index" class="category-item">
+              <div class="category-header">
+                <div class="category-titles">
+                  <h4>{{ category.main_category.name }}</h4>
+                  <p class="subcategory">{{ category.sub_category.name }}</p>
+                </div>
+                <span class="confidence-badge">
+                  {{ formatConfidence(category.confidence) }}%
                 </span>
               </div>
-              <p class="conformite-explanation">{{ value.explication }}</p>
+              <p class="category-explanation">{{ category.explanation }}</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <div v-if="results.categories" class="result-box">
-        <h3>Catégorisation</h3>
-        <div class="categories-grid">
-          <div v-for="(category, index) in results.categories" 
-               :key="index" 
-               class="category-item">
-            <div class="category-header">
-              <div class="category-titles">
-                <h4>{{ category.main_category.name }}</h4>
-                <p class="subcategory">{{ category.sub_category.name }}</p>
-              </div>
-              <span class="confidence-badge">
-                {{ formatConfidence(category.confidence) }}%
-              </span>
-            </div>
-            <p class="category-explanation">{{ category.explanation }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="results.validity" class="result-box">
-        <h3>Analyse de validité juridique</h3>
-        <div class="validity-content">
-          <div class="validity-header">
-            <div class="confidence-section">
-              <h4>Indice de confiance</h4>
-              <div class="confidence-indicator">
-                <div class="confidence-value">{{ extractConfidence(results.validity.analyse) }}%</div>
-                <div class="confidence-bar">
-                  <div :style="{ width: extractConfidence(results.validity.analyse) + '%' }" class="confidence-progress"></div>
+        <div v-if="results.validity" class="result-box">
+          <h3>Analyse de validité juridique</h3>
+          <div class="validity-content">
+            <div class="validity-header">
+              <div class="confidence-section">
+                <h4>Indice de confiance</h4>
+                <div class="confidence-indicator">
+                  <div class="confidence-value">{{ extractConfidence(results.validity.analyse) }}%</div>
+                  <div class="confidence-bar">
+                    <div :style="{ width: extractConfidence(results.validity.analyse) + '%' }"
+                      class="confidence-progress">
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+            <div class="validity-body" v-html="formatMarkdown(results.validity.analyse)"></div>
           </div>
-          <div class="validity-body" v-html="formatMarkdown(results.validity.analyse)"></div>
         </div>
       </div>
     </div>
@@ -442,7 +471,7 @@ h3 {
   padding: 15px;
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .conformite-header {
@@ -491,7 +520,7 @@ h4 {
 .result-box {
   background-color: white;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 25px;
   margin: 20px 0;
 }
@@ -506,7 +535,7 @@ h4 {
 .category-item {
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .category-header {
@@ -601,7 +630,7 @@ h4 {
   padding: 20px;
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   line-height: 1.6;
 }
 
@@ -614,7 +643,8 @@ h4 {
   margin: 10px 0;
 }
 
-.validity-body :deep(ul), .validity-body :deep(ol) {
+.validity-body :deep(ul),
+.validity-body :deep(ol) {
   margin: 10px 0;
   padding-left: 20px;
 }
@@ -622,4 +652,4 @@ h4 {
 .validity-body :deep(li) {
   margin: 5px 0;
 }
-</style> 
+</style>
