@@ -222,7 +222,7 @@ class AnalyseArrete(BaseModel):
     conformite_aux_exigences_legales: ConformiteLegale = Field(description="Analyse détaillée de la conformité")
     Observation: str = Field(description="Résumé des observations détaillées")
     niveau_de_confiance: str = Field(description="Note en pourcentage")
-    collectivité:str = Field(description="Nom de la collectivité qui a emis le texte")
+    collectivité:str = Field(description="Nom de la collectivité (ville, commune, ...) qui a emis le texte")
     signataire:str = Field(description="Nom et prénom du signataire ")
 
     class Config:

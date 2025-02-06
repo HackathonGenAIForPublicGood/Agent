@@ -96,7 +96,7 @@ class RAGAgent:
         print(f"Nombre de documents : {len(collection['ids'])}")
 
 
-    def extract_keywords_with_llm(self, text, num_keywords=5):
+    def extract_keywords_with_llm(self, text, num_keywords=3):
         """
         Extrait les mots-clés d'un texte en utilisant le LLM
         Args:
@@ -108,16 +108,17 @@ class RAGAgent:
         prompt = f"""En tant qu'expert en droit administratif et constitutionnel, identifie les {num_keywords} concepts juridiques principaux dans ce texte.
 
         Concentre-toi sur :
-         - La nature générale de la mesure administrative
-         - Le type d'acte juridique
+        - La nature générale de la mesure administrative
+        - Le type d'acte juridique
         - Les personnes ou entités concernées
-        - La portée territoriale de la mesure
-        - L'objectif principal de la mesure
+        - La portée territoriale de la mesure (ville, département, région, etc.)
+        - L'objectif principal de la mesure (maire, préfet, etc.)
 
-        Réponds uniquement avec une liste de concepts généraux séparés par des virgules, sans phrases explicatives.
-         Par exemple, pour le texte suivant :
-        "ARTICLE 1 : Tout mineur 4gé de moins de 13 ans ne pourra, sans étre accompagné d'une personne majeure, \ncirculer de 23h a 6h sur la voie publique, dans les périmétres Quartiers Prioritaires de la ville figurants sur le \nplan annexé. \nARTICLE 2 : Cette interdiction s'applique toutes les nuits du lundi au dimanche inclus pour la période du 22 \navril au 30 septembre. \nARTICLE 3 : En cas d'urgence ou de danger immédiat pour lui ou pour autrui et sans préjudice des sanctions \npénales prévues a I'article R610-5 du code pénal, tout mineur de 13 ans en infraction avec les dispositions \nsusvisées pourra étre reconduit & son domicile ou au commissariat par les agents de la police nationale ou de \nla police municipale. \nEn application de I'article 40 du code de procédure pénale et de I'article 375 du code civil, les autorités \nsusmentionnées informeront sans délai le Procureur de la République de tous les faits susceptibles de donner \nlieu a 'engagement de poursuites ou a la saisine du Juge des Enfants. \nARTICLE 4 : En cas de manquements aux obligations édictées par le présent arrété, les parents des enfants \nconcernés pourront faire I'objet de poursuites pénales sur le fondement de 'article R610-5 et de 'article L227- \n17 du Code Pénal. \nARTICLE 5 : Madame la Directrice Générale des Services de la Mairie de Béziers, Monsieur le Commissaire \nCentral de Police et Monsieur le Directeur de la Direction de la Police Municipale de la Mairie sont chargés, \nchacun en ce qui le concerne, de I'exécution du présent arrété. \nFait en I'Hétel de Ville de Béziers, 22 AVR 2024"
-        Le concept principal serait : "couvre-feu pour les mineurs dans une ville de france métropolitaine"
+        Réponds uniquement avec une liste de {num_keywords} concepts généraux séparés par des virgules, sans phrases explicatives.
+        Par exemple, pour le texte suivant :
+        "ARTICLE 1 : Tout mineur agé de moins de 13 ans ne pourra, sans étre accompagné d'une personne majeure, \ncirculer de 23h a 6h sur la voie publique, dans les périmétres Quartiers Prioritaires de la ville figurants sur le \nplan annexé. \nARTICLE 2 : Cette interdiction s'applique toutes les nuits du lundi au dimanche inclus pour la période du 22 \navril au 30 septembre. \nARTICLE 3 : En cas d'urgence ou de danger immédiat pour lui ou pour autrui et sans préjudice des sanctions \npénales prévues a I'article R610-5 du code pénal, tout mineur de 13 ans en infraction avec les dispositions \nsusvisées pourra étre reconduit & son domicile ou au commissariat par les agents de la police nationale ou de \nla police municipale. \nEn application de I'article 40 du code de procédure pénale et de I'article 375 du code civil, les autorités \nsusmentionnées informeront sans délai le Procureur de la République de tous les faits susceptibles de donner \nlieu a 'engagement de poursuites ou a la saisine du Juge des Enfants. \nARTICLE 4 : En cas de manquements aux obligations édictées par le présent arrété, les parents des enfants \nconcernés pourront faire I'objet de poursuites pénales sur le fondement de 'article R610-5 et de 'article L227- \n17 du Code Pénal. \nARTICLE 5 : Madame la Directrice Générale des Services de la Mairie de Béziers, Monsieur le Commissaire \nCentral de Police et Monsieur le Directeur de la Direction de la Police Municipale de la Mairie sont chargés, \nchacun en ce qui le concerne, de I'exécution du présent arrété. \nFait en I'Hétel de Ville de Béziers, 22 AVR 2024"
+        Le retour contiendrait au minimum : "couvre-feu pour les mineurs dans une ville de france métropolitaine"
+
         Texte à analyser :  {text}"""
 
         response = self.llm.invoke(prompt)
@@ -199,7 +200,7 @@ class RAGAgent:
         for keyword in keywords:
             results = self.vector_store.similarity_search_with_score(
                 keyword,
-                k=2
+                k=6
             )
             relevant_passages.extend([doc[0].page_content for doc in results])
 
@@ -209,7 +210,7 @@ class RAGAgent:
         Document à analyser : {text}
 
         Références juridiques officielles disponibles :
-        {' '.join(relevant_passages[:30])}
+        {' '.join(relevant_passages[:20])}
 
         Concepts juridiques identifiés : {', '.join(keywords)}
 
@@ -234,19 +235,26 @@ class RAGAgent:
         - Évalue si l'intensité des mesures est comparable aux cas similaires
         - Compare avec les solutions retenues dans des situations analogues
 
-        Format de réponse attendu :
+        4. definie ton indice de confiance
+        - en fonction de l'analyse du contenu, des éléments cohérents et divergents des références et des citations pertinentes
+        - en fonction de la pertinence des références par rapport au document
+
+        Format de réponse attendu à RESPECTER :
         Indice de confiance : [pourcentage]
 
-        Analyse du contenu :
+        **Analyse du contenu** :
         - [observations basées uniquement sur la comparaison avec les références]
 
-        Éléments cohérents avec les références :
-        - [liste des points conformes aux précédents]
+        **Concepts juridiques identifiés** :
+        - [liste des concepts juridiques identifiés]
 
-        Éléments divergents des références :
-        - [liste des incohérences par rapport aux précédents]
+        **Éléments cohérents avec les références** :
+        - [liste des points conformes aux précédents lié au contenu du document]
 
-        Citations pertinentes des références :
+        **Éléments divergents des références** :
+        - [liste des incohérences par rapport aux précédents lié au contenu du document]
+
+        **Citations pertinentes des références** :
         - [extraits précis de la base de données justifiant l'analyse]
 
         Conclusion finale : [synthèse de l'analyse]

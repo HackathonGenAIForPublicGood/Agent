@@ -118,9 +118,33 @@
             <div class="confidence-section">
               <h4>Indice de confiance</h4>
               <div class="confidence-indicator">
-                <div class="confidence-value">{{ extractConfidence(results.validity.analyse) }}%</div>
-                <div class="confidence-bar">
-                  <div :style="{ width: extractConfidence(results.validity.analyse) + '%' }" class="confidence-progress"></div>
+                <div :class="[
+                  'confidence-value',
+                  {
+                    'low': extractConfidence(results.validity.analyse) < 30,
+                    'medium': extractConfidence(results.validity.analyse) >= 30 && extractConfidence(results.validity.analyse) < 60,
+                    'high': extractConfidence(results.validity.analyse) >= 60
+                  }
+                ]">{{ extractConfidence(results.validity.analyse) }}%</div>
+                <div :class="[
+                  'confidence-bar',
+                  {
+                    'low': extractConfidence(results.validity.analyse) < 30,
+                    'medium': extractConfidence(results.validity.analyse) >= 30 && extractConfidence(results.validity.analyse) < 60,
+                    'high': extractConfidence(results.validity.analyse) >= 60
+                  }
+                ]">
+                  <div 
+                    :style="{ width: extractConfidence(results.validity.analyse) + '%' }" 
+                    :class="[
+                      'confidence-progress',
+                      {
+                        'low': extractConfidence(results.validity.analyse) < 30,
+                        'medium': extractConfidence(results.validity.analyse) >= 30 && extractConfidence(results.validity.analyse) < 60,
+                        'high': extractConfidence(results.validity.analyse) >= 60
+                      }
+                    ]"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -295,7 +319,7 @@ export default {
     }
 
     const extractConfidence = (text) => {
-      const match = text.match(/Indice de confiance\s*:\s*(\d+)%?/)
+      const match = text.match(/Indice de confiance\s*:\s*(\d+)%/)
       return match ? parseInt(match[1]) : 0
     }
 
@@ -469,6 +493,11 @@ h3 {
   color: #2e7d32;
 }
 
+.conformite-status.Conforme {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
 .conformite-status.non {
   background-color: #ffebee;
   color: #c62828;
@@ -586,15 +615,49 @@ h4 {
 .confidence-bar {
   flex-grow: 1;
   height: 20px;
-  background-color: #e8f5e9;
   border-radius: 10px;
   overflow: hidden;
 }
 
 .confidence-progress {
   height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.confidence-bar.low {
+  background-color: rgba(211, 47, 47, 0.2);
+}
+
+.confidence-bar.medium {
+  background-color: rgba(245, 124, 0, 0.2);
+}
+
+.confidence-bar.high {
+  background-color: rgba(76, 175, 80, 0.2);
+}
+
+.confidence-value.low {
+  color: #d32f2f;
+}
+
+.confidence-value.medium {
+  color: #f57c00;
+}
+
+.confidence-value.high {
+  color: #2e7d32;
+}
+
+.confidence-progress.low {
+  background-color: #d32f2f;
+}
+
+.confidence-progress.medium {
+  background-color: #f57c00;
+}
+
+.confidence-progress.high {
   background-color: #4CAF50;
-  transition: width 0.3s ease;
 }
 
 .validity-body {
