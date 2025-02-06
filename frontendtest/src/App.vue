@@ -1,19 +1,32 @@
 <template>
   <div class="container">
-    <h1>Analyse d'Actes Administratifs</h1>
-    
+    <h1>3A - Analyseur d'Actes Administratifs</h1>
+    <div class="fr-callout fr-icon-information-line">
+      <h3 class="fr-callout__title">Bienvenue sur le 3A</h3>
+      <p class="fr-callout__text">
+        Le 3A est un outil d'analyse d'actes administratifs. Il permet d'extraire le texte d'un document PDF, d'analyser
+        la forme du document, de le catégoriser, et de confronter le contenu aux textes juridiques dans le but de
+        proposer une première analyse de la validité de l'acte.
+      </p>
+      <p>
+        Son utilisation a été voulue la plus simple possible :
+      </p>
+      <ul>
+        <li>Téléverser le document</li>
+        <li>Consulter les résultats</li>
+      </ul>
+    </div>
+
+    <h3>Téléverser le document</h3>
     <!-- Sélection du fichier -->
     <div class="upload-section">
-      <input 
-        type="file" 
-        @change="handleFileUpload" 
-        accept=".pdf"
-        :disabled="isProcessing"
-      >
+      <input type="file" @change="handleFileUpload" accept=".pdf" :disabled="isProcessing">
       <div v-if="selectedFile" class="file-info">
         Fichier sélectionné : {{ selectedFile.name }}
       </div>
     </div>
+
+    <h3>Résultat de l'analyse</h3>
 
     <!-- Barres de progression -->
     <div class="progress-section">
@@ -59,7 +72,7 @@
 
       <div v-if="results.analysis" class="result-box">
         <h3>Analyse de forme</h3>
-        
+
         <div class="analysis-header">
           <div class="analysis-meta">
             <p><strong>Type de document :</strong> {{ results.analysis.type_de_document }}</p>
@@ -76,9 +89,8 @@
         <div class="conformite-section">
           <h4>Conformité aux exigences légales</h4>
           <div class="conformite-grid">
-            <div v-for="(value, key) in results.analysis.conformite_aux_exigences_legales" 
-                 :key="key" 
-                 class="conformite-item">
+            <div v-for="(value, key) in results.analysis.conformite_aux_exigences_legales" :key="key"
+              class="conformite-item">
               <div class="conformite-header">
                 <span class="conformite-title">{{ formatTitle(key) }}</span>
                 <span :class="['conformite-status', value.etat]">
@@ -94,9 +106,7 @@
       <div v-if="results.categories" class="result-box">
         <h3>Catégorisation</h3>
         <div class="categories-grid">
-          <div v-for="(category, index) in results.categories" 
-               :key="index" 
-               class="category-item">
+          <div v-for="(category, index) in results.categories" :key="index" class="category-item">
             <div class="category-header">
               <div class="category-titles">
                 <h4>{{ category.main_category.name }}</h4>
@@ -134,17 +144,14 @@
                     'high': extractConfidence(results.validity.analyse) >= 60
                   }
                 ]">
-                  <div 
-                    :style="{ width: extractConfidence(results.validity.analyse) + '%' }" 
-                    :class="[
-                      'confidence-progress',
-                      {
-                        'low': extractConfidence(results.validity.analyse) < 30,
-                        'medium': extractConfidence(results.validity.analyse) >= 30 && extractConfidence(results.validity.analyse) < 60,
-                        'high': extractConfidence(results.validity.analyse) >= 60
-                      }
-                    ]"
-                  ></div>
+                  <div :style="{ width: extractConfidence(results.validity.analyse) + '%' }" :class="[
+                    'confidence-progress',
+                    {
+                      'low': extractConfidence(results.validity.analyse) < 30,
+                      'medium': extractConfidence(results.validity.analyse) >= 30 && extractConfidence(results.validity.analyse) < 60,
+                      'high': extractConfidence(results.validity.analyse) >= 60
+                    }
+                  ]"></div>
                 </div>
               </div>
             </div>
@@ -466,7 +473,7 @@ h3 {
   padding: 15px;
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .conformite-header {
@@ -520,7 +527,7 @@ h4 {
 .result-box {
   background-color: white;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 25px;
   margin: 20px 0;
 }
@@ -535,7 +542,7 @@ h4 {
 .category-item {
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .category-header {
@@ -664,7 +671,7 @@ h4 {
   padding: 20px;
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   line-height: 1.6;
 }
 
@@ -677,7 +684,8 @@ h4 {
   margin: 10px 0;
 }
 
-.validity-body :deep(ul), .validity-body :deep(ol) {
+.validity-body :deep(ul),
+.validity-body :deep(ol) {
   margin: 10px 0;
   padding-left: 20px;
 }
@@ -685,4 +693,4 @@ h4 {
 .validity-body :deep(li) {
   margin: 5px 0;
 }
-</style> 
+</style>
