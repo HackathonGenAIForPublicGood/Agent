@@ -171,3 +171,8 @@ cython_debug/
 .pypirc
 
 frontendtest/node_modules/
+venv/
+.env
+.idea/
+.DS_Store/
+*/node_modules/*
