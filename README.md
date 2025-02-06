@@ -5,7 +5,7 @@ Track 2
 Ce projet est un prototype qui vise à illustrer l'utilisation d'outils d'IA Générative pour permettre d'assister l'analyse de documents administratifs, en particulier les arrêtés municipaux.
 
 
-## Documentation
+# Documentation
 
 Les slides de présentation du projet sont disponibles ici : [@/docs/slides.pdf](./docs/3A-Analyseurd'ActesAdministratifs.pdf)
 
@@ -22,14 +22,19 @@ Les slides de présentation du projet sont disponibles ici : [@/docs/slides.pdf]
 
 ## Démarrer le back-end 
 
-```
+```sh
 pip install -r requirements.txt
 API_KEY="XXX" python backend.py
 ```
 
+Pour peupler la base de RAG : 
+```shell
+python init_rag.py
+```
+
 # Démarrer le front-end
 
-```
+```sh
 cd frontendtest
 npm install
 npm run dev

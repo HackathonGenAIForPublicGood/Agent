@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import json
 from PdfReader.pdfreader import extract_text_from_pdf
-from categorisation import display_results_catégorisation
+from ui_categorisation import display_results_catégorisation
 from forme import analyser_arrete, contexte, AnalyseArrete
 from dotenv import load_dotenv
 
